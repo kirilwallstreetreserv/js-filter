@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Настраиваемый фильтр текста</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+        }
+        textarea {
+            width: 100%;
+            height: 100px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
+            margin-bottom: 10px;
+            font-family: monospace;
+            line-height: 1.4;
+        }
+        .output {
+            background-color: #f8f8f8;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            min-height: 50px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            line-height: 1.4;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .settings {
+            background-color: #f8f8f8;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .settings-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+        .setting-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .custom-symbols {
+            width: 100px;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Настраиваемый фильтр текста</h1>
+        
+        <div class="settings">
+            <h3>Настройки фильтрации:</h3>
+            <div class="settings-group">
+                <div class="setting-item">
+                    <input type="checkbox" id="removeStars" checked>
+                    <label for="removeStars">Удалять звёздочки (*)</label>
+                </div>
+                <div class="setting-item">
+                    <input type="checkbox" id="removeSpaces">
+                    <label for="removeSpaces">Удалять все пробелы</label>
+                </div>
+                <div class="setting-item">
+                    <input type="checkbox" id="removeExtraSpaces" checked>
+                    <label for="removeExtraSpaces">Удалять лишние пробелы</label>
+                </div>
+                <div class="setting-item">
+                    <input type="checkbox" id="removeSpecialChars" checked>
+                    <label for="removeSpecialChars">Удалять спецсимволы</label>
+                </div>
+                <div class="setting-item">
+                    <input type="checkbox" id="removePunctuation">
+                    <label for="removePunctuation">Удалять пунктуацию</label>
+                </div>
+                <div class="setting-item">
+                    <input type="checkbox" id="keepLineBreaks" checked>
+                    <label for="keepLineBreaks">Сохранять переносы строк</label>
+                </div>
+            </div>
+            <div class="setting-item">
+                <label for="customSymbols">Дополнительные символы для удаления:</label>
+                <input type="text" id="customSymbols" class="custom-symbols" placeholder="Например: #@">
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label for="inputText">Введите текст:</label>
+            <textarea id="inputText" placeholder="Введите текст для фильтрации..."></textarea>
+            <button onclick="filterText()">Фильтровать</button>
+        </div>
+
+        <div class="input-group">
+            <label>Отфильтрованный текст:</label>
+            <div id="outputText" class="output"></div>
+        </div>
+    </div>
+
+    <script>
+        function cleanText(text, settings) {
+            if (typeof text !== 'string') {
+                throw new Error('Входной параметр должен быть строкой');
+            }
+
+            // Разбиваем текст на строки, если нужно сохранить переносы
+            const lines = settings.keepLineBreaks ? text.split('\n') : [text];
+
+            // Обрабатываем каждую строку отдельно
+            const processedLines = lines.map(line => {
+                let cleanedLine = line;
+
+                // Удаляем пользовательские символы
+                if (settings.customSymbols) {
+                    const customSymbolsRegex = new RegExp(`[${settings.customSymbols.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')}]`, 'g');
+                    cleanedLine = cleanedLine.replace(customSymbolsRegex, '');
+                }
+
+                // Удаляем звёздочки
+                if (settings.removeStars) {
+                    cleanedLine = cleanedLine.replace(/\*/g, '');
+                }
+
+                // Удаляем спецсимволы
+                if (settings.removeSpecialChars) {
+                    cleanedLine = cleanedLine.replace(/[^\wа-яА-ЯёЁ\s.,!?]/g, '');
+                }
+
+                // Удаляем пунктуацию
+                if (settings.removePunctuation) {
+                    cleanedLine = cleanedLine.replace(/[.,!?]/g, '');
+                }
+
+                // Обработка пробелов
+                if (settings.removeSpaces) {
+                    cleanedLine = cleanedLine.replace(/\s/g, '');
+                } else if (settings.removeExtraSpaces) {
+                    cleanedLine = cleanedLine.replace(/\s+/g, ' ').trim();
+                }
+
+                return cleanedLine;
+            });
+
+            // Объединяем строки обратно
+            return settings.keepLineBreaks ? processedLines.join('\n') : processedLines.join('');
+        }
+
+        function filterText() {
+            const inputElement = document.getElementById('inputText');
+            const outputElement = document.getElementById('outputText');
+            
+            // Получаем настройки
+            const settings = {
+                removeStars: document.getElementById('removeStars').checked,
+                removeSpaces: document.getElementById('removeSpaces').checked,
+                removeExtraSpaces: document.getElementById('removeExtraSpaces').checked,
+                removeSpecialChars: document.getElementById('removeSpecialChars').checked,
+                removePunctuation: document.getElementById('removePunctuation').checked,
+                keepLineBreaks: document.getElementById('keepLineBreaks').checked,
+                customSymbols: document.getElementById('customSymbols').value
+            };
+            
+            try {
+                const filteredText = cleanText(inputElement.value, settings);
+                outputElement.textContent = filteredText;
+                outputElement.style.color = '#333';
+            } catch (error) {
+                outputElement.textContent = 'Ошибка: ' + error.message;
+                outputElement.style.color = 'red';
+            }
+        }
+
+        // Добавляем обработчики событий
+        document.getElementById('inputText').addEventListener('input', filterText);
+        document.querySelectorAll('input[type="checkbox"], #customSymbols').forEach(input => {
+            input.addEventListener('change', filterText);
+        });
+    </script>
+</body>
+</html>
