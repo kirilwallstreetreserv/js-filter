@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <title>Настраиваемый фильтр текста</title>
-
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -103,101 +102,100 @@
     </style>
 </head>
 <body>
-<div class="container">
-    <h1>Настраиваемый фильтр текста</h1>
-
-    <div class="settings">
-        <h3>Настройки фильтрации:</h3>
-        <div class="settings-group">
-            <div class="setting-item">
-                <input type="checkbox" id="removeStars" checked>
-                <label for="removeStars">Удалять звёздочки (*)</label>
+    <div class="container">
+        <h1>Настраиваемый фильтр текста</h1>
+        
+        <div class="settings">
+            <h3>Настройки фильтрации:</h3>
+            <div class="settings-group">
+                <div class="setting-item">
+                    <input type="checkbox" id="removeStars" checked>
+                    <label for="removeStars">Удалять звёздочки (*)</label>
+                </div>
+                <div class="setting-item">
+                    <input type="checkbox" id="removeSpaces">
+                    <label for="removeSpaces">Удалять все пробелы</label>
+                </div>
+                <div class="setting-item">
+                    <input type="checkbox" id="removeExtraSpaces" checked>
+                    <label for="removeExtraSpaces">Удалять лишние пробелы</label>
+                </div>
+                <div class="setting-item">
+                    <input type="checkbox" id="removeSpecialChars" checked>
+                    <label for="removeSpecialChars">Удалять спецсимволы</label>
+                </div>
+                <div class="setting-item">
+                    <input type="checkbox" id="removePunctuation">
+                    <label for="removePunctuation">Удалять пунктуацию</label>
+                </div>
+                <div class="setting-item">
+                    <input type="checkbox" id="keepLineBreaks" checked>
+                    <label for="keepLineBreaks">Сохранять переносы строк</label>
+                </div>
             </div>
             <div class="setting-item">
-                <input type="checkbox" id="removeSpaces">
-                <label for="removeSpaces">Удалять все пробелы</label>
-            </div>
-            <div class="setting-item">
-                <input type="checkbox" id="removeExtraSpaces" checked>
-                <label for="removeExtraSpaces">Удалять лишние пробелы</label>
-            </div>
-            <div class="setting-item">
-                <input type="checkbox" id="removeSpecialChars" checked>
-                <label for="removeSpecialChars">Удалять спецсимволы</label>
-            </div>
-            <div class="setting-item">
-                <input type="checkbox" id="removePunctuation">
-                <label for="removePunctuation">Удалять пунктуацию</label>
-            </div>
-            <div class="setting-item">
-                <input type="checkbox" id="keepLineBreaks" checked>
-                <label for="keepLineBreaks">Сохранять переносы строк</label>
+                <label for="customSymbols">Дополнительные символы для удаления:</label>
+                <input type="text" id="customSymbols" class="custom-symbols" placeholder="Например: #@">
             </div>
         </div>
-        <div class="setting-item">
-            <label for="customSymbols">Дополнительные символы для удаления:</label>
-            <input type="text" id="customSymbols" class="custom-symbols" placeholder="Например: #@">
+
+        <div class="input-group">
+            <label for="inputText">Введите текст:</label>
+            <textarea id="inputText" placeholder="Введите текст для фильтрации..."></textarea>
+        </div>
+
+        <div class="input-group">
+            <label>Отфильтрованный текст:</label>
+            <div id="outputText" class="output"></div>
+            <button id="copyButton" onclick="copyToClipboard()">Скопировать</button>
+            <span id="copyFeedback" class="copy-feedback">Скопировано!</span>
         </div>
     </div>
 
-    <div class="input-group">
-        <label for="inputText">Введите текст:</label>
-        <textarea id="inputText" placeholder="Введите текст для фильтрации..."></textarea>
-    </div>
+    <script>
+        function cleanText(text, settings) {
+            if (typeof text !== 'string') {
+                throw new Error('Входной параметр должен быть строкой');
+            }
 
-    <div class="input-group">
-        <label>Отфильтрованный текст:</label>
-        <div id="outputText" class="output"></div>
-        <button id="copyButton" onclick="copyToClipboard()">Скопировать</button>
-        <span id="copyFeedback" class="copy-feedback">Скопировано!</span>
-    </div>
-</div>
+            const lines = settings.keepLineBreaks ? text.split('\n') : [text];
 
-<script>
-    function cleanText(text, settings) {
-        if (typeof text !== 'string') {
-            throw new Error('Входной параметр должен быть строкой');
+            const processedLines = lines.map(line => {
+                let cleanedLine = line;
+
+                if (settings.customSymbols) {
+                    const customSymbolsRegex = new RegExp(`[${settings.customSymbols.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')}]`, 'g');
+                    cleanedLine = cleanedLine.replace(customSymbolsRegex, '');
+                }
+
+                if (settings.removeStars) {
+                    cleanedLine = cleanedLine.replace(/\*/g, '');
+                }
+
+                if (settings.removeSpecialChars) {
+                    cleanedLine = cleanedLine.replace(/[^\wа-яА-ЯёЁ\s.,!?]/g, '');
+                }
+
+                if (settings.removePunctuation) {
+                    cleanedLine = cleanedLine.replace(/[.,!?]/g, '');
+                }
+
+                if (settings.removeSpaces) {
+                    cleanedLine = cleanedLine.replace(/\s/g, '');
+                } else if (settings.removeExtraSpaces) {
+                    cleanedLine = cleanedLine.replace(/\s+/g, ' ').trim();
+                }
+
+                return cleanedLine;
+            });
+
+            return settings.keepLineBreaks ? processedLines.join('\n') : processedLines.join('');
         }
-
-        const lines = settings.keepLineBreaks ? text.split('\n') : [text];
-
-        const processedLines = lines.map(line => {
-            let cleanedLine = line;
-
-            if (settings.customSymbols) {
-                const customSymbolsRegex = new RegExp(`[${settings.customSymbols.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')}]`, 'g');
-                cleanedLine = cleanedLine.replace(customSymbolsRegex, '');
-            }
-
-            if (settings.removeStars) {
-                cleanedLine = cleanedLine.replace(/\*/g, '');
-            }
-
-            if (settings.removeSpecialChars) {
-                cleanedLine = cleanedLine.replace(/[^\wа-яА-ЯёЁ\s.,!?]/g, '');
-            }
-
-            if (settings.removePunctuation) {
-                cleanedLine = cleanedLine.replace(/[.,!?]/g, '');
-            }
-
-            if (settings.removeSpaces) {
-                cleanedLine = cleanedLine.replace(/\s/g, '');
-            } else if (settings.removeExtraSpaces) {
-                cleanedLine = cleanedLine.replace(/\s+/g, ' ').trim();
-            }
-
-            return cleanedLine;
-        });
-
-        return settings.keepLineBreaks ? processedLines.join('\n') : processedLines.join('');
-    }
 
         function filterText() {
             const inputElement = document.getElementById('inputText');
             const outputElement = document.getElementById('outputText');
             
-            // Получаем настройки
             const settings = {
                 removeStars: document.getElementById('removeStars').checked,
                 removeSpaces: document.getElementById('removeSpaces').checked,
@@ -218,7 +216,22 @@
             }
         }
 
-        // Добавляем обработчики событий
+        async function copyToClipboard() {
+            const outputText = document.getElementById('outputText').textContent;
+            const feedbackElement = document.getElementById('copyFeedback');
+            
+            try {
+                await navigator.clipboard.writeText(outputText);
+                feedbackElement.style.display = 'inline';
+                setTimeout(() => {
+                    feedbackElement.style.display = 'none';
+                }, 2000);
+            } catch (err) {
+                console.error('Ошибка при копировании:', err);
+                alert('Не удалось скопировать текст');
+            }
+        }
+
         document.getElementById('inputText').addEventListener('input', filterText);
         document.querySelectorAll('input[type="checkbox"], #customSymbols').forEach(input => {
             input.addEventListener('change', filterText);
