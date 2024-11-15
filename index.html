@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Настраиваемый фильтр текста</title>
+
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -192,50 +193,36 @@
         return settings.keepLineBreaks ? processedLines.join('\n') : processedLines.join('');
     }
 
-    function filterText() {
-        const inputElement = document.getElementById('inputText');
-        const outputElement = document.getElementById('outputText');
-
-        const settings = {
-            removeStars: document.getElementById('removeStars').checked,
-            removeSpaces: document.getElementById('removeSpaces').checked,
-            removeExtraSpaces: document.getElementById('removeExtraSpaces').checked,
-            removeSpecialChars: document.getElementById('removeSpecialChars').checked,
-            removePunctuation: document.getElementById('removePunctuation').checked,
-            keepLineBreaks: document.getElementById('keepLineBreaks').checked,
-            customSymbols: document.getElementById('customSymbols').value
-        };
-
-        try {
-            const filteredText = cleanText(inputElement.value, settings);
-            outputElement.textContent = filteredText;
-            outputElement.style.color = '#333';
-        } catch (error) {
-            outputElement.textContent = 'Ошибка: ' + error.message;
-            outputElement.style.color = 'red';
+        function filterText() {
+            const inputElement = document.getElementById('inputText');
+            const outputElement = document.getElementById('outputText');
+            
+            // Получаем настройки
+            const settings = {
+                removeStars: document.getElementById('removeStars').checked,
+                removeSpaces: document.getElementById('removeSpaces').checked,
+                removeExtraSpaces: document.getElementById('removeExtraSpaces').checked,
+                removeSpecialChars: document.getElementById('removeSpecialChars').checked,
+                removePunctuation: document.getElementById('removePunctuation').checked,
+                keepLineBreaks: document.getElementById('keepLineBreaks').checked,
+                customSymbols: document.getElementById('customSymbols').value
+            };
+            
+            try {
+                const filteredText = cleanText(inputElement.value, settings);
+                outputElement.textContent = filteredText;
+                outputElement.style.color = '#333';
+            } catch (error) {
+                outputElement.textContent = 'Ошибка: ' + error.message;
+                outputElement.style.color = 'red';
+            }
         }
-    }
 
-    async function copyToClipboard() {
-        const outputText = document.getElementById('outputText').textContent;
-        const feedbackElement = document.getElementById('copyFeedback');
-
-        try {
-            await navigator.clipboard.writeText(outputText);
-            feedbackElement.style.display = 'inline';
-            setTimeout(() => {
-                feedbackElement.style.display = 'none';
-            }, 2000);
-        } catch (err) {
-            console.error('Ошибка при копировании:', err);
-            alert('Не удалось скопировать текст');
-        }
-    }
-
-    document.getElementById('inputText').addEventListener('input', filterText);
-    document.querySelectorAll('input[type="checkbox"], #customSymbols').forEach(input => {
-        input.addEventListener('change', filterText);
-    });
-</script>
+        // Добавляем обработчики событий
+        document.getElementById('inputText').addEventListener('input', filterText);
+        document.querySelectorAll('input[type="checkbox"], #customSymbols').forEach(input => {
+            input.addEventListener('change', filterText);
+        });
+    </script>
 </body>
 </html>
